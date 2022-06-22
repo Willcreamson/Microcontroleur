@@ -1,13 +1,18 @@
- //float Te = 0.001; Periode echantillonage chaque milli seconde
+  //float Te = 0.001; Periode echantillonage chaque milli seconde
    short Puiss_inst[100];
    short bruit_nuis = 75; // bruit nuisible pour l'oreille
    short bruit_danger = 120 ;// bruit dangereux 
-   short K = 50;
-   float divz = 1/(2*K+1);
+   int K = 50;
+   float divz = 2*K+1;
+   int maximum = 3517;
+   int minimum = 519;
+   int dBMax = 120;
+   int dBMin = 40;
+
 
 // Partie Chargement des données 
 
-short Signal[10001] = { 
+short Signal[5120] = { 
 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 
 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 768, 740, 713, 688, 664, 642, 622, 603, 587, 572, 559, 
 547, 538, 530, 525, 521, 519, 519, 520, 524, 530, 537, 546, 557, 570, 585, 601, 619, 639, 661, 685, 
@@ -263,7 +268,7 @@ short Signal[10001] = {
 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 
 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 
 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 
-2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 
+2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018, 2018
 };
 
 void setup() {
@@ -272,36 +277,43 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly: 
-  
   // Partie A recentrage des valeurs du signal
-  float moyenne;
+
+
+  /*float moyenne;
   moyenne = 0.;
   for (int i = 0; i<1000; i++){
     moyenne += Signal[i];
   }
   moyenne = moyenne/1000;
-
   for (int i=0; i<1000; i++){
     Signal[i] = {(float)Signal[i]-moyenne};
-  }
+  }*/
+
 
   // Partie B Calcul de la puissance instantanée fenêtre glissante
-  
-  for (int i = 0; i<1000; i++){
-  Puiss_inst[i] = 0;
-    for (int j=-K; j<K; j++){
-      Puiss_inst[i] += (Signal[j]-moyenne)*(Signal[j]-moyenne);
-      Puiss_inst[i] = divz * Puiss_inst[i];
-    Serial.println("La puissance en dB est de :");
-    Serial.println(10*log(Puiss_inst[i]));
-  }
-  // Partie C Comparaison avec le niveau de bruit
-  if (10*log(Puiss_inst[i]) > 75){
-    Serial.println("Attention bruit nuisible");
-  }
-  else if (10*log(Puiss_inst[i]) > 120){ 
-    Serial.println("Attention bruit dangereux !");
-  }
+  for (int i = 50; i<1050; i++){
+    float Puiss_inst = 0.0;
+    
+    for (int a=-K; a<K; a++){
+      Puiss_inst += abs(Signal[i+a]-2040)*(dBMax-dBMin)/2040 + dBMin;
+    }
+    Puiss_inst = Puiss_inst / divz;
+    //Serial.println("La puissance en dB est de :");
+    Serial.print(Puiss_inst);
+    Serial.print("dB");
+
+
+    // Partie C Comparaison avec le niveau de bruit
+    if (Puiss_inst > bruit_danger){ 
+      Serial.println("  Attention bruit dangereux !");
+    }
+    else if (Puiss_inst > bruit_nuis){
+      Serial.println("  Attention bruit nuisible");
+    }
+    else{
+      Serial.println("  Intensite sonore agreable");
+    }
+    delay(250);
   }
 }
